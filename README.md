@@ -9,10 +9,10 @@ Dependencies
 ------------
 The Trove Python client has relatively few dependencies.  They are:
 
-- [python-dateutil] (http://labix.org/python-dateutil)
-- [simplejson] (http://code.google.com/p/simplejson/)
+- [python-dateutil](http://labix.org/python-dateutil)
+- [simplejson](http://code.google.com/p/simplejson/)
 - urllib and urllib2
-- [Leah Culver's OAuth library] (http://oauth.googlecode.com/svn/code/python/oauth/)
+- [Leah Culver's OAuth library](http://oauth.googlecode.com/svn/code/python/oauth/)
 
 ##How does this thing work?  Is this thing on? :tap tap:
 
