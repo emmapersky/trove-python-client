@@ -1,11 +1,12 @@
 #Some Sample code for how Trove Client APIs work
 
 from troveclient import TroveAPI
-from oauth_provider.models import Consumer
 
 # You need a consumer.  Make one in the db. Consumers have call back URLs, which are not overridable (a-la Twitter and Fb)  
-c = Consumer.objects.all()[0]  
-
+c = { 
+	key: 'some_key_here',
+	secret: 'sssh, it\'s a secret!'
+}
 # Initialize the TroveAPI with the consumer's key and secret
 api = TroveAPI(c.key, c.secret, ['photo'])
 
@@ -13,6 +14,9 @@ rt = api.get_request_token()
 # We get the request token -- returns back an 'OAuthToken'
  
 url = api.get_authorization_url(rt)  
+print url
+raw_input()
+
 # Returns back the URL to redirect the user  (Looks like 'http://brooklyn.vlku.com:8000/multi/login?next=/oauth/authorize/%3Foauth_token%3DdtKaXn5JXRWNndTa')
 
 # callback URL  AUTHORIZES (SAME) token and redirects to a page for you to act on token to get access token
