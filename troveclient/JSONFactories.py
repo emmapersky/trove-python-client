@@ -1,4 +1,6 @@
-from troveclient.Objects import Query
+from troveclient.Objects import Query, Result, Photo
+
+import datetime
 import simplejson
 
 class EncoderFactory:
@@ -19,8 +21,29 @@ class EncoderFactory:
         else:
             return None
         
-class DecoderFactory:
-    decoders = {}
+class MakeNiceObjectThing:
+    _object_hooks = {}
+    
+    def register(self, object_hook):
+        if object_hook.object_name not in self._object_hooks:
+            self._object_hooks[object_hook.object_name] = object_hook
+    
+    def deregister(self, object_hook):
+        if object_hook.object_name not in self._object_hooks:
+            del self._object_hooks[object_hook.object_name]
+
+    def make_it_nice(self, dct):
+        result = Result()
+        result.count = dct['count']
+        result.page = dct['page']
+        result.total_number_of_results = dct['total_number_of_results']
+        results = []
+        for item in dct['results']:
+            hook = self._object_hooks[item['object_type']]
+            object = hook.get_object(item)
+            results.append(object)
+        result.objects = results
+        return result
     
 
 class SomeUsefulJSONUtilities:
@@ -44,8 +67,8 @@ class SomeUsefulJSONUtilities:
 # Now We Register Stuff
 
 encoders = EncoderFactory()
+make_nice = MakeNiceObjectThing()
 
-        
 class __QueryEncoder(simplejson.JSONEncoder):
     
     object_name = Query().__class__.__name__
@@ -66,4 +89,83 @@ class __QueryEncoder(simplejson.JSONEncoder):
         encoded_list['attributes'] = object.attributes
         return encoded_list
 
+class __ResultEncoder(simplejson.JSONEncoder):
+    
+    object_name = Result().__class__.__name__
+    
+    def default(self, object):
+        result = {
+                  'total_number_of_results' : object.total_number_of_results,
+                  'count' : object.count,
+                  'page' : object.page,
+                  'results': object.objects
+                  }
+        return result
+
+class __PhotoEncoder(simplejson.JSONEncoder):
+    
+    object_name = Photo().__class__.__name__
+    
+    def default(self, object):
+        if object.date is None or object.date is "":
+            object_date = ""
+        else:
+            object_date = object.date.strftime('%Y-%m-%d T %H:%M:%S')
+        result = {'service': object.service, 
+                    'title': object.title,
+                    'owner': object.owner,
+                    'description' : object.description,
+                    'id': object.id,
+                    'urls': object.urls,
+                    'tags': object.tags,
+                    'date': object_date,
+                    'album_id': object.album_id,
+                    'license': object.license,
+                    'height': object.height,
+                    'width': object.width,
+                    'public': (object.public is 1 or True),
+                    'tags': object.tags                
+                }
+        if object.loc is not None:
+                result['latitude'] = object.loc['x']
+                result['longitude'] = object.loc['y']                    
+        return result
+
+    
 encoders.register(__QueryEncoder)
+encoders.register(__ResultEncoder)
+encoders.register(__PhotoEncoder)
+
+class __PhotoDecoder(simplejson.JSONDecoder):
+    object_name = "photo"
+    
+    def get_object(object):
+        p = Photo()
+        if object['date'] is None or object['date'] is "":
+            p.date = ""
+        else:
+            date_str = object['date']
+            p.date = datetime.datetime.strptime(date_str,'%Y-%m-%d T %H:%M:%S')            
+        p.service = object['service']
+        p.title = object['title']
+        p.owner = object['owner']
+        p.description = object['description']
+        p.id = object['id']
+        p.urls = object['urls']
+        p.tags = object['tags']
+        p.album_id = object['album_id']
+        p.license = object['license']
+        p.public = object['public']
+        p.height = object['height']
+        p.width = object['width']
+        if object.has_key('latitude'):
+            p.latitude = object['latitude']
+        if object.has_key('longitude'):
+            p.longitude = object['longitude']
+
+        return p
+    
+    get_object = staticmethod(get_object)
+    
+make_nice.register(__PhotoDecoder)
+    

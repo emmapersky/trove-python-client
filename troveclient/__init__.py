@@ -3,7 +3,8 @@
 
 '''A Trove Client API interface using OAuth
 '''
-__version__ = '0.0.0.0.1'
+from troveclient.JSONFactories import make_nice
+__version__ = '0.0.0.0.2'
 __all__ = ('TroveAPI', 'TroveError',
         'get_request_token', 'get_authorization_url', 'get_access_token','get_photos', '__version__')
 __author__ = 'Nick Vlku <n@yourtrove.com>'
@@ -31,13 +32,11 @@ from dateutil.parser import *
 
 from troveclient import JSONFactories
 
-
-
-REQUEST_TOKEN_URL = 'http://beta.yourtrove.com/oauth/request_token/' # should be https
-ACCESS_TOKEN_URL = 'http://beta.yourtrove.com/oauth/access_token/'  #should be https
-AUTHORIZATION_URL = 'http://beta.yourtrove.com/oauth/authorize/'
-SIGNIN_URL = 'http://beta.yourtrove.com/oauth/authenticate/'
-CONTENT_ROOT_URL = 'http://beta.yourtrove.com/oauth/'
+REQUEST_TOKEN_URL = 'http://brooklyn.vlku.com:8000/oauth/request_token/' # should be https
+ACCESS_TOKEN_URL = 'http://brooklyn.vlku.com:8000/oauth/access_token/'  #should be https
+AUTHORIZATION_URL = 'http://brooklyn.vlku.com:8000/oauth/authorize/'
+SIGNIN_URL = 'http://brooklyn.vlku.com:8000/oauth/authenticate/'
+CONTENT_ROOT_URL = 'http://brooklyn.vlku.com:8000/oauth/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -161,8 +160,7 @@ class TroveAPI():
             self._access_token = access_token
             return access_token
         except HTTPError, e:
-            error = TroveError(e, request)
-            
+            error = TroveError(e, request)            
             raise error
 
     def get_photos(self,query=None): 
@@ -206,7 +204,7 @@ class TroveAPI():
                 print 'POST: ' + encoded_params
             raw_input()
         
-        
+            
         try:
             if query is not None:
                 response = self._urllib.urlopen(request, encoded_params)
@@ -214,7 +212,9 @@ class TroveAPI():
                 response = self._urllib.urlopen(request)
             self.response = response
             results = simplejson.loads(response.read())
-            return results
+            nice_result = make_nice.make_it_nice(results)
+            return nice_result
+                
         except HTTPError, e:
             error = TroveError(e, request)
             
