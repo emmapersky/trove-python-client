@@ -86,6 +86,16 @@ class __QueryEncoder(simplejson.JSONEncoder):
         if object.date_to is not None:
             object.date_to = SomeUsefulJSONUtilities.make_it_utc(object.date_to)
             encoded_list['date-to'] = object.date_to.strftime("%Y-%m-%d %H:%M:%S %Z")
+
+        if object.geo is not None and object.geo.has_key('bounds'):
+                if object.geo['bounds'].has_key('sw'):
+                    encoded_list['geo_sw'] = object.geo['bounds']['sw']
+                if object.geo['bounds'].has_key('ne'):
+                    encoded_list['geo_ne'] = object.geo['bounds']['ne']
+            
+        encoded_list['count'] = object.count
+        encoded_list['page'] = object.page
+                
         encoded_list['attributes'] = object.attributes
         return encoded_list
 
