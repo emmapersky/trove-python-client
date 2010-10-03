@@ -32,11 +32,13 @@ from dateutil.parser import *
 
 from troveclient import JSONFactories
 
-REQUEST_TOKEN_URL = 'http://beta.yourtrove.com/oauth/request_token/' # should be https
-ACCESS_TOKEN_URL = 'http://beta.yourtrove.com/oauth/access_token/'  #should be https
-AUTHORIZATION_URL = 'http://beta.yourtrove.com/oauth/authorize/'
-SIGNIN_URL = 'http://beta.yourtrove.com/oauth/authenticate/'
-CONTENT_ROOT_URL = 'http://beta.yourtrove.com/oauth/'
+API_BETA_BASE = 'http://beta.yourtrove.com'
+
+REQUEST_TOKEN_URL = API_BETA_BASE + '/oauth/request_token/' # should be https
+ACCESS_TOKEN_URL = API_BETA_BASE + '/oauth/access_token/'  #should be https
+AUTHORIZATION_URL = API_BETA_BASE + '/oauth/authorize/'
+SIGNIN_URL = API_BETA_BASE + '/oauth/authenticate/'
+CONTENT_ROOT_URL = API_BETA_BASE + '/oauth/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
