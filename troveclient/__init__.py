@@ -32,7 +32,7 @@ from dateutil.parser import *
 
 from troveclient import JSONFactories
 
-API_BETA_BASE = 'http://beta.yourtrove.com'
+API_BETA_BASE = 'http://brooklyn.vlku.com:8000'
 
 REQUEST_TOKEN_URL = API_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + '/oauth/access_token/'  #should be https
@@ -40,6 +40,7 @@ AUTHORIZATION_URL = API_BETA_BASE + '/oauth/authorize/'
 SIGNIN_URL = API_BETA_BASE + '/oauth/authenticate/'
 CONTENT_ROOT_URL = API_BETA_BASE + '/oauth/'
 PUSH_URL = API_BETA_BASE + '/oauth/push/'
+USER_INFO_URL = API_BETA_BASE + '/oauth/user/'
 
 
 def _generate_nonce(length=8):
@@ -166,6 +167,31 @@ class TroveAPI():
         except HTTPError, e:
             error = TroveError(e, request)            
             raise error
+        
+    def get_user_info(self):
+        parameters = {
+                      'oauth_consumer_key': self._Consumer.key,
+                      'oauth_token': self._access_token.key,
+                      'oauth_signature_method': 'HMAC-SHA1',
+                      'oauth_timestamp': str(int(time.time())),
+                      'oauth_nonce': _generate_nonce(),
+                      'oauth_version': _oauth_version()
+                      }
+
+        oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=USER_INFO_URL, parameters=parameters, http_method="POST")
+        signature_method = self._signature_method()
+        signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
+        parameters['oauth_signature'] = signature
+        
+        encoded_params = urllib.urlencode(parameters)
+ 
+        request = self._urllib.Request(USER_INFO_URL)
+        
+        request.add_header('User-agent', self._useragent)
+        
+        response = self._urllib.urlopen(request, encoded_params)
+
+        return simplejson.loads(response.read())
 
     def push_photos(self, user_id,  photos_list= []):
         if photos_list is None: 
