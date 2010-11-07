@@ -136,6 +136,8 @@ class __PhotoEncoder(simplejson.JSONEncoder):
                     'public': (object.public is 1 or True),
                     'tags': object.tags                
                 }
+        if object.trove_id is not None:
+                result['trove_id'] = object.trove_id
         if object.loc is not None:
                 result['latitude'] = object.loc['x']
                 result['longitude'] = object.loc['y']                    
@@ -172,7 +174,8 @@ class __PhotoDecoder(simplejson.JSONDecoder):
             p.latitude = object['latitude']
         if object.has_key('longitude'):
             p.longitude = object['longitude']
-
+        if object.has_key('trove_id'):
+            p.trove_id = object['trove_id']
         return p
     
     get_object = staticmethod(get_object)

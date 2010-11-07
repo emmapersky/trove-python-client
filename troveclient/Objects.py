@@ -48,6 +48,7 @@ class Photo:
         self.tags = ""
         self.loc = None
         self.public = False
+        self.trove_id = ""
 
     def __str__(self):
         return 'Photo "%s" from %s on %s' % (self.title, self.owner, self.service)
