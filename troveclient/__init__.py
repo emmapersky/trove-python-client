@@ -58,7 +58,11 @@ def _oauth_version():
 class TroveError():
     def __init__(self, http_error, request):
         self.http_error = http_error
-        self.request = request
+        self.request = request        
+        
+    def __repr__(self):
+        return "<TroveError with Error Code: \"%s-%s\" and Body: \"%s\">" % (self.http_error.code, self.http_error.msg, self.http_error.read())
+    
 
 class TroveAPI():
     DEBUG = False
