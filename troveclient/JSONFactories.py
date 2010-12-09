@@ -56,9 +56,6 @@ class SomeUsefulJSONUtilities:
         else:
             date_with_no_home = date_with_no_home.astimezone(tzutc())
         
-        ##TODO FIXME don't need this hack now? this is using mongo,
-        ## need to look at mongo date times
-        # this hack is here since MySQL doesn't support timezones in datetime
         date_with_no_home = date_with_no_home.replace(tzinfo=None)  
         return date_with_no_home
 

@@ -3,18 +3,27 @@
 
 '''A Trove Client API interface using OAuth
 '''
-from troveclient.JSONFactories import make_nice
-__version__ = '0.0.0.0.2'
 __all__ = ('TroveAPI', 'TroveError',
-        'get_request_token', 'get_authorization_url', 'get_access_token','get_photos', '__version__')
-__author__ = 'Nick Vlku <n@yourtrove.com>'
-
+        'get_request_token', 'get_authorization_url', 'get_access_token','get_photos', 'push_photos', '__version__')
+__author__ = 'Nick Vlku <n =at= yourtrove.com>'
+__status__ = "Beta"
 __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth')
+__version__ = '0.1'
 
-# Copyright (c) 2010 YourTrove, Inc 
-# Nick Vlku <n@yourtrove.com>
-#
 # This code is lovingly crafted in Brooklyn, NY (40°42′51″N, 73°57′12″W)
+#
+# Typical MIT license below:
+#
+# Copyright (c) 2010 Nick Vlku at YourTrove, Inc.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -24,13 +33,21 @@ __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import urllib, urllib2, random, datetime, time, simplejson
+import urllib
+import urllib2
+import random
+import time
+
+import datetime
+import simplejson
+
 import oauth.oauth as oauth
 
 from urllib2 import HTTPError
 from dateutil.parser import *
 
 from troveclient import JSONFactories
+from troveclient.JSONFactories import make_nice
 
 API_BETA_BASE = 'http://beta.yourtrove.com'
 
@@ -67,14 +84,21 @@ class TroveError():
 class TroveAPI():
     DEBUG = False
 
-    def __init__(self, consumer_key, consumer_secret, scope=[], access_token=None, default_params=None):
+    def __init__(self, consumer_key, consumer_secret, scope=[], access_token=None):
         self._Consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
         self._signature_method = oauth.OAuthSignatureMethod_HMAC_SHA1
         self._access_token = access_token
         self._scope = scope
         self._urllib = urllib2
         self._initialize_user_agent()
-        self._default_params = default_params
+        self._default_oauth_params = {
+                  'oauth_consumer_key': self._Consumer.key,
+                  'oauth_signature_method': 'PLAINTEXT',
+                  'oauth_timestamp': str(int(time.time())),
+                  'oauth_nonce':  _generate_nonce(),
+                  'oauth_version': _oauth_version(),
+                  'scope': ','.join(self._scope)
+        } 
         
     def _initialize_user_agent(self):
         user_agent = 'Python-urllib/%s (python-trove/%s)' % \
@@ -86,129 +110,97 @@ class TroveAPI():
         
     def set_user_agent(self, user_agent):
         self._useragent = user_agent
+    
+    def get_default_oauth_params(self):
+        parameters = self._default_oauth_params.copy()
+        parameters['oauth_nonce'] = _generate_nonce()
+        return parameters
+    
+    def __make_oauth_request(self, url, parameters=None, oauth_signature=None, token=None, signed=False, method="POST"):
+        if parameters is None:
+            parameters = self.get_default_oauth_params()
+        if token is not None:
+            parameters['oauth_token'] = token.key
+        if signed:
+            parameters['oauth_signature_method'] = 'HMAC-SHA1'
+            oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=url, parameters=parameters, http_method=method)
+            signature_method = self._signature_method()
+            signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
+            parameters['oauth_signature'] = signature
+        else:
+            if oauth_signature is not None:
+                parameters['oauth_signature'] = oauth_signature
 
-    def set_default_params(self, default_params):
-        self._default_params = default_params
-
-    def get_request_token(self):
-        parameters =  {
-                       'oauth_consumer_key': self._Consumer.key,
-                       'oauth_signature_method': 'PLAINTEXT',
-                       'oauth_signature': '%s&' % self._Consumer.secret,
-                       'oauth_timestamp': str(int(time.time())),
-                       'oauth_nonce':  _generate_nonce(),
-                       'oauth_version': _oauth_version(),
-                       'scope': ','.join(self._scope)
-                       }
-        
-        encoded_params = urllib.urlencode(parameters)
-        request = self._urllib.Request(REQUEST_TOKEN_URL + '?' + encoded_params)
-        request.add_header('User-agent', self._useragent)
-                
-        if self.DEBUG:
-            print REQUEST_TOKEN_URL + '?' + encoded_params
-            raw_input()
-            
         try:
-            response = self._urllib.urlopen(request)
-            self.response = response
-            request_token = oauth.OAuthToken.from_string(response.read())
-            return request_token
+            if method is "POST":
+                request = self._urllib.Request(url)
+                request.add_header('User-agent', self._useragent)
+                encoded_params = urllib.urlencode(parameters)
+                if self.DEBUG:
+                    print url + " : Parameters=" + parameters.__str__() + " : Encoded Parameters=" + encoded_params
+                    raw_input()
+                response = self._urllib.urlopen(request, encoded_params)
+                return response
+            else:
+                encoded_params = urllib.urlencode(parameters)
+                request = self._urllib.Request(url + '?' + encoded_params)  
+                request.add_header('User-agent', self._useragent)
+                if self.DEBUG:
+                    print url + '?' + encoded_params
+                    raw_input()
+                response = self._urllib.urlopen(request)
+                return response
+            
         except HTTPError, e:
             error = TroveError(e, request)
             raise error
+        
+    def get_request_token(self):
+        response = self.__make_oauth_request(REQUEST_TOKEN_URL, oauth_signature=self._Consumer.secret+"&", method="GET")
+        self.response = response
+        request_token = oauth.OAuthToken.from_string(response.read())
+        return request_token
         
     def get_authorization_url(self, request_token, callback=None):
         parameters = { 'oauth_token': request_token.key }
         
         if callback:
             parameters['oauth_callback'] = callback
-            
-        encoded_params = urllib.urlencode(parameters)
 
-        request = self._urllib.Request(AUTHORIZATION_URL + '?' + encoded_params)
-        request.add_header('User-agent', self._useragent)
-
-        if self.DEBUG:
-            print AUTHORIZATION_URL + '?' + encoded_params
-            raw_input()
-
-        try:
-            response = self._urllib.urlopen(request)
-            return response.geturl()
-        
-        except HTTPError, e:
-            error = TroveError(e, request)
-            raise error
-        
-        
+        response = self.__make_oauth_request(AUTHORIZATION_URL, parameters, oauth_signature=None, method="GET")            
+        return response.geturl()
+                
     def get_access_token(self, request_token):
-        parameters = {
-                      'oauth_consumer_key': self._Consumer.key,
-                      'oauth_token': request_token.key,
-                      'oauth_signature_method': 'PLAINTEXT',
-                      'oauth_signature': '%s&%s' % (self._Consumer.secret, request_token.secret),
-                      'oauth_timestamp': str(int(time.time())),
-                      'oauth_nonce':  _generate_nonce(),
-                      'oauth_version': _oauth_version(),
-                      'scope': ','.join(self._scope)
-                      } 
-        
-        encoded_params = urllib.urlencode(parameters)
-        request = self._urllib.Request(ACCESS_TOKEN_URL + '?' + encoded_params)
-        request.add_header('User-agent', self._useragent)
-
-        if self.DEBUG:
-            print ACCESS_TOKEN_URL + '?' + encoded_params
-            raw_input()
-        
-        try:
-            response = self._urllib.urlopen(request)
-            self.response = response
-            access_token = oauth.OAuthToken.from_string(response.read())
-            self._access_token = access_token
-            return access_token
-        except HTTPError, e:
-            error = TroveError(e, request)            
-            raise error
+        response = self.__make_oauth_request(ACCESS_TOKEN_URL, oauth_signature='%s&%s' % (self._Consumer.secret, request_token.secret), token=request_token, method='GET')
+        self.response = response
+        access_token = oauth.OAuthToken.from_string(response.read())
+        self._access_token = access_token
+        return access_token
         
     def get_user_info(self):
-        parameters = {
-                      'oauth_consumer_key': self._Consumer.key,
-                      'oauth_token': self._access_token.key,
-                      'oauth_signature_method': 'HMAC-SHA1',
-                      'oauth_timestamp': str(int(time.time())),
-                      'oauth_nonce': _generate_nonce(),
-                      'oauth_version': _oauth_version()
-                      }
-
-        oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=USER_INFO_URL, parameters=parameters, http_method="POST")
-        signature_method = self._signature_method()
-        signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
-        parameters['oauth_signature'] = signature
-        
-        encoded_params = urllib.urlencode(parameters)
- 
-        request = self._urllib.Request(USER_INFO_URL)
-        
-        request.add_header('User-agent', self._useragent)
-        
-        response = self._urllib.urlopen(request, encoded_params)
-
+        response = self.__make_oauth_request(USER_INFO_URL, token=self._access_token, signed=True)
         return simplejson.loads(response.read())
+
+    def get_photos(self,query=None): 
+        parameters = self.get_default_oauth_params()
+        base_url = CONTENT_ROOT_URL + 'photos/'
+
+        if query is not None:
+            query_post = simplejson.dumps(query, cls=JSONFactories.encoders.get_encoder_for(query))
+            parameters['query'] = query_post
+            self.response = self.__make_oauth_request(base_url, parameters, token=self._access_token, signed=True, method="POST")
+        else:
+            self.response = self.__make_oauth_request(base_url, parameters, token=self._access_token, signed=True, method="GET")
+        
+        results = simplejson.loads(self.response.read())
+        nice_result = make_nice.make_it_nice(results)
+        return nice_result
 
     def push_photos(self, user_id,  photos_list= []):
         if photos_list is None: 
             return
         
-        parameters = {
-                      'oauth_consumer_key': self._Consumer.key,
-                      'oauth_token': self._access_token.key,
-                      'oauth_signature_method': 'HMAC-SHA1',
-                      'oauth_timestamp': str(int(time.time())),
-                      'oauth_nonce': _generate_nonce(),
-                      'oauth_version': _oauth_version()
-                      }
+        parameters = self.get_default_oauth_params()
 
         json_photos_list = simplejson.dumps(photos_list, cls=JSONFactories.encoders.get_encoder_for(photos_list[0]))
                                             
@@ -216,76 +208,6 @@ class TroveAPI():
         parameters['number_of_items'] = len(photos_list)
         parameters['content_type'] = 'photos'
         parameters['user_id'] = user_id
-
-        oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=PUSH_URL, parameters=parameters, http_method="POST")
-        
-        signature_method = self._signature_method()
-        signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
-        parameters['oauth_signature'] = signature
-        encoded_params = urllib.urlencode(parameters)
-        request = self._urllib.Request(PUSH_URL)
-        
-        request.add_header('User-agent', self._useragent)
-        
-        response = self._urllib.urlopen(request, encoded_params)
+        response = self.__make_oauth_request(PUSH_URL, parameters, token=self._access_token, signed=True, method="POST")
 
         return simplejson.loads(response.read())
-
-    def get_photos(self,query=None): 
-        parameters = {
-                      'oauth_consumer_key': self._Consumer.key,
-                      'oauth_token': self._access_token.key,
-                      'oauth_signature_method': 'HMAC-SHA1',
-                      'oauth_timestamp': str(int(time.time())),
-                      'oauth_nonce': _generate_nonce(),
-                      'oauth_version': _oauth_version()
-                      }
-        base_url = CONTENT_ROOT_URL + 'photos/'
-        if query is not None:
-            query_post = simplejson.dumps(query, cls=JSONFactories.encoders.get_encoder_for(query))
-            parameters['query'] = query_post
-            oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=base_url, parameters=parameters, http_method="POST")
-        else:
-            oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=base_url, parameters=parameters)
-        
-        
-        signature_method = self._signature_method()
-        signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
-        parameters['oauth_signature'] = signature
-
-        encoded_params = urllib.urlencode(parameters)
-
-        if query is not None:
-            request = self._urllib.Request(base_url)
-            encoded_params = urllib.urlencode(parameters)            
-        else:
-            encoded_params = urllib.urlencode(parameters)
-            request = self._urllib.Request(base_url + '?' + encoded_params)
-            
-        request.add_header('User-agent', self._useragent)
-        
-        if self.DEBUG:
-            if query is None:
-                print CONTENT_ROOT_URL + 'photos/?' + encoded_params
-            else:
-                print CONTENT_ROOT_URL + 'photo' 
-                print 'POST: ' + encoded_params
-            raw_input()
-        
-            
-        try:
-            if query is not None:
-                response = self._urllib.urlopen(request, encoded_params)
-            else:
-                response = self._urllib.urlopen(request)
-            self.response = response
-            results = simplejson.loads(response.read())
-            nice_result = make_nice.make_it_nice(results)
-            return nice_result
-                
-        except HTTPError, e:
-            error = TroveError(e, request)
-            
-            raise error
-
-
