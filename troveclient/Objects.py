@@ -10,11 +10,25 @@ class Query:
         self.attributes = {}
         self.page = 1
         self.count = 50
-        self.geo = {}
+        self.geo = {} 
+        self.order_by = []       
         
     def add_geo_bounds(self, lower_left_coords, upper_right_coords):
         self.geo['bounds'] = { 'sw': lower_left_coords,
                             'ne': upper_right_coords}
+
+    def add_geo_near(self, center_point, radius=5): 
+        self.geo['near'] = {    
+                            'center': center_point, 
+                            'radius': radius
+                        }
+    
+    def add_order_by(self, value):
+        self.order_by.append(value)
+
+    def remove_order_by(self, value):
+        self.order_by.remove(value)
+    
         
 class Result:
     

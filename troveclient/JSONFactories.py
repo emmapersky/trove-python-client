@@ -89,6 +89,16 @@ class __QueryEncoder(simplejson.JSONEncoder):
                     encoded_list['geo_sw'] = object.geo['bounds']['sw']
                 if object.geo['bounds'].has_key('ne'):
                     encoded_list['geo_ne'] = object.geo['bounds']['ne']
+
+        if object.geo is not None and object.geo.has_key('near'):
+            if object.geo['near'].has_key('center'):
+                encoded_list['geo_near_center'] = object.geo['near']['center']
+            if object.geo['near'].has_key('radius'):
+                encoded_list['geo_near_radius'] = object.geo['near']['radius']        
+        
+        if object.order_by is not None:
+            encoded_list['order_by'] = object.order_by
+
             
         encoded_list['count'] = object.count
         encoded_list['page'] = object.page
