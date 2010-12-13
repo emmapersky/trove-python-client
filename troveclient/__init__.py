@@ -49,8 +49,7 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-#API_BETA_BASE = 'http://beta.yourtrove.com'
-API_BETA_BASE = 'http://brooklyn.vlku.com:8000'
+API_BETA_BASE = 'http://beta.yourtrove.com'
 
 REQUEST_TOKEN_URL = API_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + '/oauth/access_token/'  #should be https
