@@ -13,6 +13,7 @@ class Query:
         self.geo = {} 
         self.order_by = []       
         self.identities_by_id = []
+        self.trove_id = None
         
     def add_geo_bounds(self, lower_left_coords, upper_right_coords):
         self.geo['bounds'] = { 'sw': lower_left_coords,
@@ -36,6 +37,12 @@ class Query:
     def remove_identity_id(self, id):
         self.identities_by_id.remove(id)
         
+    @classmethod
+    def get_photo_by_trove_id(cls,id):
+        q = Query()
+        q.trove_id = id
+        return q
+    
 class Result:
     
     def __init__(self):
@@ -68,6 +75,7 @@ class Photo:
         self.tags = ""
         self.loc = None
         self.public = False
+        self.original_web_url = ""        
         self.trove_id = ""
 
     def __str__(self):

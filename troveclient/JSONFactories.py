@@ -73,39 +73,42 @@ class __QueryEncoder(simplejson.JSONEncoder):
     def default(self, object):
         
         encoded_list = {}
-        encoded_list['services'] = object.services
-        encoded_list['tags-optional'] = object.tags_optional
-        encoded_list['tags-required'] = object.tags_required
-        encoded_list['force-update'] = object.force_update
-        if object.date_from is not None:
-            object.date_from = SomeUsefulJSONUtilities.make_it_utc(object.date_from)
-            encoded_list['date-from'] = object.date_from.strftime("%Y-%m-%d %H:%M:%S %Z")
-        if object.date_to is not None:
-            object.date_to = SomeUsefulJSONUtilities.make_it_utc(object.date_to)
-            encoded_list['date-to'] = object.date_to.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-        if object.geo is not None and object.geo.has_key('bounds'):
-                if object.geo['bounds'].has_key('sw'):
-                    encoded_list['geo_sw'] = object.geo['bounds']['sw']
-                if object.geo['bounds'].has_key('ne'):
-                    encoded_list['geo_ne'] = object.geo['bounds']['ne']
-
-        if object.geo is not None and object.geo.has_key('near'):
-            if object.geo['near'].has_key('center'):
-                encoded_list['geo_near_center'] = object.geo['near']['center']
-            if object.geo['near'].has_key('radius'):
-                encoded_list['geo_near_radius'] = object.geo['near']['radius']        
-        
-        if object.order_by is not None:
-            encoded_list['order_by'] = object.order_by
-
+        if object.trove_id:
+            encoded_list['trove_id'] = object.trove_id
+        else:
+            encoded_list['services'] = object.services
+            encoded_list['tags-optional'] = object.tags_optional
+            encoded_list['tags-required'] = object.tags_required
+            encoded_list['force-update'] = object.force_update
+            if object.date_from is not None:
+                object.date_from = SomeUsefulJSONUtilities.make_it_utc(object.date_from)
+                encoded_list['date-from'] = object.date_from.strftime("%Y-%m-%d %H:%M:%S %Z")
+            if object.date_to is not None:
+                object.date_to = SomeUsefulJSONUtilities.make_it_utc(object.date_to)
+                encoded_list['date-to'] = object.date_to.strftime("%Y-%m-%d %H:%M:%S %Z")
+    
+            if object.geo is not None and object.geo.has_key('bounds'):
+                    if object.geo['bounds'].has_key('sw'):
+                        encoded_list['geo_sw'] = object.geo['bounds']['sw']
+                    if object.geo['bounds'].has_key('ne'):
+                        encoded_list['geo_ne'] = object.geo['bounds']['ne']
+    
+            if object.geo is not None and object.geo.has_key('near'):
+                if object.geo['near'].has_key('center'):
+                    encoded_list['geo_near_center'] = object.geo['near']['center']
+                if object.geo['near'].has_key('radius'):
+                    encoded_list['geo_near_radius'] = object.geo['near']['radius']        
             
-        encoded_list['count'] = object.count
-        encoded_list['page'] = object.page
+            if object.order_by is not None:
+                encoded_list['order_by'] = object.order_by
+    
                 
-        encoded_list['attributes'] = object.attributes
-        
-        encoded_list['identities_by_id'] = object.identities_by_id
+            encoded_list['count'] = object.count
+            encoded_list['page'] = object.page
+                    
+            encoded_list['attributes'] = object.attributes
+            
+            encoded_list['identities_by_id'] = object.identities_by_id
 
         return encoded_list
 
@@ -144,8 +147,10 @@ class __PhotoEncoder(simplejson.JSONEncoder):
                     'height': object.height,
                     'width': object.width,
                     'public': (object.public is 1 or True),
-                    'tags': object.tags                
-                }
+                    'tags': object.tags,
+                    'original_web_url': object.original_web_url,
+               }
+        
         if object.trove_id is not None:
                 result['trove_id'] = object.trove_id
         if object.loc is not None:
