@@ -12,6 +12,7 @@ class Query:
         self.count = 50
         self.geo = {} 
         self.order_by = []       
+        self.identities_by_id = []
         
     def add_geo_bounds(self, lower_left_coords, upper_right_coords):
         self.geo['bounds'] = { 'sw': lower_left_coords,
@@ -29,6 +30,11 @@ class Query:
     def remove_order_by(self, value):
         self.order_by.remove(value)
     
+    def add_identity_id(self, id):
+        self.identities_by_id.append(id)
+        
+    def remove_identity_id(self, id):
+        self.identities_by_id.remove(id)
         
 class Result:
     

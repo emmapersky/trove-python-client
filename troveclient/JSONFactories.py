@@ -104,6 +104,9 @@ class __QueryEncoder(simplejson.JSONEncoder):
         encoded_list['page'] = object.page
                 
         encoded_list['attributes'] = object.attributes
+        
+        encoded_list['identities_by_id'] = object.identities_by_id
+
         return encoded_list
 
 class __ResultEncoder(simplejson.JSONEncoder):
