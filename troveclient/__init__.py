@@ -8,7 +8,7 @@ __all__ = ('TroveAPI', 'TroveError',
 __author__ = 'Nick Vlku <n =at= yourtrove.com>'
 __status__ = "Beta"
 __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth')
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 # This code is lovingly crafted in Brooklyn, NY (40°42′51″N, 73°57′12″W)
 #
@@ -49,7 +49,7 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'http://brooklyn.vlku.com:8000'
+API_BETA_BASE = 'http://beta.yourtrove.com'
 
 REQUEST_TOKEN_URL = API_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + '/oauth/access_token/'  #should be https
