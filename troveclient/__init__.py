@@ -8,7 +8,7 @@ __all__ = ('TroveAPI', 'TroveError',
 __author__ = 'Nick Vlku <n =at= yourtrove.com>'
 __status__ = "Beta"
 __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth')
-__version__ = '0.1.3'
+__version__ = '0.1.5'
 
 # This code is lovingly crafted in Brooklyn, NY (40°42′51″N, 73°57′12″W)
 #
@@ -51,14 +51,16 @@ from troveclient.JSONFactories import make_nice
 
 API_BETA_BASE = 'http://beta.yourtrove.com'
 
-REQUEST_TOKEN_URL = API_BETA_BASE + '/oauth/request_token/' # should be https
-ACCESS_TOKEN_URL = API_BETA_BASE + '/oauth/access_token/'  #should be https
-AUTHORIZATION_URL = API_BETA_BASE + '/oauth/authorize/'
-SIGNIN_URL = API_BETA_BASE + '/oauth/authenticate/'
-CONTENT_ROOT_URL = API_BETA_BASE + '/oauth/'
-PUSH_URL = API_BETA_BASE + '/oauth/push/'
-USER_INFO_URL = API_BETA_BASE + '/oauth/user/'
+VERSION_BETA_BASE = '/v1'
 
+REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' # should be https
+ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/'  #should be https
+AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/authorize/'
+SIGNIN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/authenticate/'
+CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
+PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
+USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
+ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/get_add_urls_for_services/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -80,6 +82,20 @@ class TroveError():
     def __repr__(self):
         return "<TroveError with Error Code: \"%s-%s\" and Body: \"%s\">" % (self.http_error.code, self.http_error.msg, self.http_error.read())
     
+class RequiresAcessTokenError():
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return "<RequiresAccessTokenError>"
+    
+class LocalError():
+    def __init__(self, msg):
+        self.msg = msg
+        
+    def __repr__(self):
+        return "<LocalError with msg: %s>" % (self.msg, )
+
 
 class TroveAPI():
     DEBUG = False
@@ -161,7 +177,17 @@ class TroveAPI():
         self.response = response
         request_token = oauth.OAuthToken.from_string(response.read())
         return request_token
-        
+
+    def get_login_via_service_url(self):
+        url = LOGIN_VIA_SERVICE_URL + "?consumer_key=" + self._Consumer.key
+        request = self._urllib.Request(url)
+        request.add_header('User-agent', self._useragent)
+        if self.DEBUG:
+            print url + '?' + encoded_params
+            raw_input()
+        response = self._urllib.urlopen(request)
+        return response
+            
     def get_authorization_url(self, request_token, callback=None):
         parameters = { 'oauth_token': request_token.key }
         
@@ -179,10 +205,15 @@ class TroveAPI():
         return access_token
         
     def get_user_info(self):
+        if self._access_token is None:
+            raise RequiresAcessTokenError()
         response = self.__make_oauth_request(USER_INFO_URL, token=self._access_token, signed=True)
         return simplejson.loads(response.read())
 
     def get_photos(self,query=None): 
+        if self._access_token is None:
+            raise RequiresAcessTokenError()
+        
         parameters = self.get_default_oauth_params()
         base_url = CONTENT_ROOT_URL + 'photos/'
 
@@ -198,6 +229,9 @@ class TroveAPI():
         return nice_result
 
     def push_photos(self, user_id,  photos_list= []):
+        if self._access_token is None:
+            raise RequiresAcessTokenError()
+        
         if photos_list is None: 
             return
         
@@ -212,3 +246,28 @@ class TroveAPI():
         response = self.__make_oauth_request(PUSH_URL, parameters, token=self._access_token, signed=True, method="POST")
 
         return simplejson.loads(response.read())
+        
+    def get_services(self):
+        if self._access_token is None:
+            raise RequiresAcessTokenError()
+
+        response = self.__make_oauth_request(ADD_URLS_FOR_SERVICES_URL, token=self._access_token, signed=True)
+        return simplejson.loads(response.read()).keys()    
+    
+    def get_url_for_service(self, service, redirect_url=None):
+        if self._access_token is None:
+            raise RequiresAcessTokenError()
+
+        response = self.__make_oauth_request(ADD_URLS_FOR_SERVICES_URL, token=self._access_token, signed=True)
+        services = simplejson.loads(response.read())
+            
+        if service in services.keys():
+            service_url = API_BETA_BASE + services[service]
+            parameters = self.get_default_oauth_params() 
+            if redirect_url is not None:
+                parameters['redirect_url'] = redirect_url
+
+            response = self.__make_oauth_request(service_url, parameters, token=self._access_token, signed=True)
+            return API_BETA_BASE + response.read()
+        else: 
+            raise LocalError("Could not find service name " + service)
