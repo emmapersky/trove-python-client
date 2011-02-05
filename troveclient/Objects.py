@@ -66,13 +66,12 @@ class Photo:
         self.description = ""
         self.id = ""
         self.urls = {}  # thumbnail, large  //tn:48,96,192
-        self.tags = {}
+        self.tags = []
         self.date = ""
         self.album_id = ""
         self.license = ""
         self.height = ""
         self.width = ""
-        self.tags = ""
         self.loc = None
         self.public = False
         self.original_web_url = ""        
