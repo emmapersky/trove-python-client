@@ -2,6 +2,7 @@ class Query:
     
     def __init__(self):
         self.services = None
+        self.content_types = []
         self.tags_optional = []
         self.tags_required = []
         self.date_from = None
@@ -36,7 +37,14 @@ class Query:
         
     def remove_identity_id(self, id):
         self.identities_by_id.remove(id)
+
+    def add_content_type(self, id):
+        self.content_types.append(id)
         
+    def remove_content_type(self, id):
+        self.content_types.remove(id)
+       
+
     @classmethod
     def get_photo_by_trove_id(cls,id):
         q = Query()
