@@ -1,3 +1,5 @@
+import datetime 
+
 class Query:
     
     def __init__(self):
@@ -64,6 +66,7 @@ class Result:
     
     def __repr__(self):
         return "<troveclient.Objects.Result instance with count %s, total_number_of_results %s and page %s>"  % (self.count, self.total_number_of_results, self.page)
+
     
 class Photo:
     
@@ -73,13 +76,13 @@ class Photo:
         self.owner = ""
         self.description = ""
         self.id = ""
-        self.urls = {}  # thumbnail, large  //tn:48,96,192
+        self.urls = {}  # thumbnail, large  //tn:48,96,192  Original is required
         self.tags = []
-        self.date = ""
+        self.date = datetime.datetime.now()
         self.album_id = ""
         self.license = ""
-        self.height = ""
-        self.width = ""
+        self.height = 0
+        self.width = 0
         self.loc = None
         self.public = False
         self.original_web_url = ""        

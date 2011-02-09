@@ -8,7 +8,7 @@ __all__ = ('TroveAPI', 'TroveError',
 __author__ = 'Nick Vlku <n =at= yourtrove.com>'
 __status__ = "Beta"
 __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth')
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 # This code is lovingly crafted in Brooklyn, NY (40°42′51″N, 73°57′12″W)
 #
