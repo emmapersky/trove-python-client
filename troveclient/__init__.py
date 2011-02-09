@@ -56,7 +56,6 @@ VERSION_BETA_BASE = '/v1'
 REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/'  #should be https
 AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/authorize/'
-SIGNIN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/authenticate/'
 CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
 PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
 USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
