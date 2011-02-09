@@ -49,18 +49,18 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'http://beta.yourtrove.com'
+API_BETA_BASE = 'http://api.yourtrove.com'
 
-VERSION_BETA_BASE = '/v1'
+VERSION_BETA_BASE = '/v2'
 
 REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/'  #should be https
 AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/authorize/'
 SIGNIN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/authenticate/'
-CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
-PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
-USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
-ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/get_add_urls_for_services/'
+CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/content/'
+PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/content/'
+USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/user/'
+ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/services/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -235,6 +235,8 @@ class TroveAPI():
         if photos_list is None: 
             return
         
+        base_url = PUSH_URL + 'photos/'
+        
         parameters = self.get_default_oauth_params()
 
         json_photos_list = simplejson.dumps(photos_list, cls=JSONFactories.encoders.get_encoder_for(photos_list[0]))
@@ -243,7 +245,7 @@ class TroveAPI():
         parameters['number_of_items'] = len(photos_list)
         parameters['content_type'] = 'photos'
         parameters['user_id'] = user_id
-        response = self.__make_oauth_request(PUSH_URL, parameters, token=self._access_token, signed=True, method="POST")
+        response = self.__make_oauth_request(base_url, parameters, token=self._access_token, signed=True, method="POST")
 
         return simplejson.loads(response.read())
         
