@@ -69,6 +69,7 @@ Phew!  Once that's done, the currently instantiated API already is logged in for
 	>>> results = api.get_photos()
 	>>> results
 	<troveclient.Objects.Result instance with count 50, total_number_of_results 863 and page 1>
+
 ### That's kind of lame?  Where are those robust query facilities you were talking about?
 
 
