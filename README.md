@@ -51,7 +51,7 @@ Next, get the verification URL:
 	>>> url
 	'http://beta.yourtrove.com/identity/login?next=/v1/oauth/authorize/%3Foauth_token%3Dgs7GaJrXzngNpThV'	
 
-'''Strip the the opening and closing single quotes and use the verification URL in your browser to allow the the application to work.'''
+*Strip the the opening and closing single quotes and use the verification URL in your browser to allow the the application to work.*
 
 
 Once you have the URL...
@@ -67,7 +67,8 @@ This access_token is what you should be storing in a data store for future acces
 Phew!  Once that's done, the currently instantiated API already is logged in for the user so you can just make requests as simple as:
 
 	>>> results = api.get_photos()
-
+	>>> results
+	<troveclient.Objects.Result instance with count 50, total_number_of_results 863 and page 1>
 ### That's kind of lame?  Where are those robust query facilities you were talking about?
 
 
