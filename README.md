@@ -18,37 +18,40 @@ The Trove Python client has relatively few dependencies.  They are:
 
 Sadly, Trove isn't on *yet* as of June 30, 2010... but we should be releasing a beta soon.  Once it's out using the API is pretty simple:
 
-### Initializing a new Trove API
+### Initializing a new Trove API (Command line example)
 
 Once you receive your key and secret (and register your app/site with us) you can create a new instance of TroveAPI like so:
 
-	from troveclient import TroveAPI
-	api = TroveAPI(app_key, app_secret, ['list','of','content_types'])
+	>>> from troveclient import TroveAPI
+	>>> api = TroveAPI(app_key, app_secret, ['list','of','content_types'])
+
+The list of content types are what you are asking the User to give you access to.  Currently the list can be: `photos`.  (More is coming, we promise!)
 
 Keep in mind, a Trove API instance is scoped to a USER.
 
-### Initializing a new Trove API with an access_token you already have from a data store
+#### Initializing a new Trove API with an access_token you already have from a data store
 
-	from troveclient import TroveAPI
-	api = TroveAPI(app_key, app_secret, ['list','of','content_types'],access_token=access_token_from_datastore)
+	>>> from troveclient import TroveAPI
+	>>> api = TroveAPI(app_key, app_secret, ['list','of','content_types'],access_token=access_token_from_datastore)
 
-The list of content types are what you are asking the User to give you access to.  Currently the list can be: `photos`.  (More is coming, we promise!)
 
 ### Getting a request token
 
 Trove uses standard OAuth 1.0a. Please see the OAuth site for more information on the details of how OAuth works.  To get a request token using the Trove API:
 
-`request_token = api.get_request_token()`
+	>>> request_token = api.get_request_token()
 
 ### To get the authorization URL to forward the user to
 
-`url = api.get_authorization_url(request_token)`
+	>>> url = api.get_authorization_url(request_token)
 
 Keep in mind, the authorization URL will post the token response back to the callback you specify (if you have a web app) or a response page will render with the status in an HTML page inside a div with an id of `auth_response`
 
+Once you have the URL, 
+
 ### Getting the access token from an authorized request token
 
-`access_token = api.get_access_token(request_token)`
+	>>> access_token = api.get_access_token(request_token)
 
 This access_token is what you should be storing in a data store for future accesses. 
 
@@ -56,9 +59,11 @@ This access_token is what you should be storing in a data store for future acces
 
 Phew!  Once that's done, the currently instantiated API already is logged in for the user so you can just make requests as simple as:
 
-`results = api.get_photos()`
+	>>> results = api.get_photos()
 
 ### That's kind of lame?  Where are those robust query facilities you were talking about?
+
+
 
 Oh man, we have query facilities!  There is a query object that can be populated with various fields you might be interested in.  These include:
 
