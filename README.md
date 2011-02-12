@@ -47,7 +47,14 @@ Trove uses standard OAuth 1.0a. Please see the OAuth site for more information o
 
 Keep in mind, the authorization URL will post the token response back to the callback you specify (if you have a web app) or a response page will render with the status in an HTML page inside a div with an id of `auth_response`
 
-Once you have the URL, 
+Next, get the verification URL: 
+	>>> url
+	'http://beta.yourtrove.com/identity/login?next=/v1/oauth/authorize/%3Foauth_token%3Dgs7GaJrXzngNpThV'	
+
+'''Strip the the opening and closing single quotes and use the verification URL in your browser to allow the the application to work.'''
+
+
+Once you have the URL...
 
 ### Getting the access token from an authorized request token
 
