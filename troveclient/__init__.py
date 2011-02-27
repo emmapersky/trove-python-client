@@ -49,13 +49,13 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'http://beta.yourtrove.com'
+API_BETA_BASE = 'https://api.yourtrove.com'
 
 VERSION_BETA_BASE = '/v1'
 
 REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' # should be https
 ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/'  #should be https
-AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/authorize/'
+AUTHORIZATION_URL = 'https://beta.yourtrove.com/oauth/authorize/'
 CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
 PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
 USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
@@ -156,6 +156,9 @@ class TroveAPI():
             oauthrequest = oauth.OAuthRequest.from_token_and_callback(self._access_token, http_url=url, parameters=parameters, http_method=method)
             signature_method = self._signature_method()
             signature = signature_method.build_signature(oauthrequest, self._Consumer, self._access_token)
+            if self.DEBUG:
+                print 'OAuth Signature:'
+                print signature
             parameters['oauth_signature'] = signature
         else:
             if oauth_signature is not None:
