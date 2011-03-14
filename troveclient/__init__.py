@@ -49,7 +49,7 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'http://api.yourtrove.com'
+API_BETA_BASE = 'https://api.yourtrove.com'
 
 VERSION_BETA_BASE = '/v2'
 
@@ -210,9 +210,28 @@ class TroveAPI():
         response = self.__make_oauth_request(USER_INFO_URL, token=self._access_token, signed=True)
         return simplejson.loads(response.read())
 
+    def get_public_photos(self,query=None):
+        if query is None:
+            query = Query()
+        query.public=True
+        parameters={}
+        query_post = simplejson.dumps(query, cls=JSONFactories.encoders.get_encoder_for(query))
+        parameters['query'] = query_post
+        parameters['app_key'] = self._Consumer.key
+        parameters['app_secret'] = self._Consumer.secret
+
+        encoded_parameters = urllib.urlencode(parameters)
+
+        req = urllib2.Request(CONTENT_ROOT_URL + 'photos/', encoded_parameters)
+        self.response = urllib2.urlopen(req)
+
+        results = simplejson.loads(self.response.read())
+        nice_result = make_nice.make_it_nice(results)
+        return nice_result
+
     def get_photos(self,query=None): 
         if self._access_token is None:
-            raise RequiresAcessTokenError()
+            return self.get_public_photos(self,query)
         
         parameters = self.get_default_oauth_params()
         base_url = CONTENT_ROOT_URL + 'photos/'
