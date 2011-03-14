@@ -110,6 +110,8 @@ class __QueryEncoder(simplejson.JSONEncoder):
             
             encoded_list['identities_by_id'] = object.identities_by_id
 
+        encoded_list['public'] = object.public
+
         return encoded_list
 
 class __ResultEncoder(simplejson.JSONEncoder):
