@@ -15,6 +15,7 @@ class Query:
         self.order_by = []       
         self.identities_by_id = []
         self.trove_id = None
+        self.public = False
         
     def add_geo_bounds(self, lower_left_coords, upper_right_coords):
         self.geo['bounds'] = { 'sw': lower_left_coords,
