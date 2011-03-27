@@ -8,7 +8,7 @@ __all__ = ('TroveAPI', 'TroveError',
 __author__ = 'Nick Vlku <n =at= yourtrove.com>'
 __status__ = "Beta"
 __dependencies__ = ('python-dateutil', 'simplejson', 'urllib', 'urllib2', 'oauth')
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 
 # This code is lovingly crafted in Brooklyn, NY (40°42′51″N, 73°57′12″W)
 #
@@ -49,17 +49,18 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'https://api.yourtrove.com'
+API_BETA_BASE = 'https://beta.yourtrove.com"
 
 VERSION_BETA_BASE = '/v1'
 
-REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' # should be https
-ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/'  #should be https
-AUTHORIZATION_URL = 'https://beta.yourtrove.com/oauth/authorize/'
+REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' 
+ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/' 
+AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/authorize/'
 CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
 PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
 USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
 ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/get_add_urls_for_services/'
+CREATE_AND_AUTH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/add/newtrove/service/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -316,3 +317,14 @@ class TroveAPI():
             return API_BETA_BASE + response.read()
         else: 
             raise LocalError("Could not find service name " + service)
+        
+    def login_and_auth_via_service(self, service):
+        parameters = {}
+        parameters['app_key'] = self._Consumer.key
+        parameters['app_secret'] = self._Consumer.secret
+        
+        encoded_parameters = urllib.urlencode(parameters)
+        
+        req = urllib2.Request(CREATE_AND_AUTH_URL + service, encoded_parameters)
+        self.response = urllib2.urlopen(req)
+        return self.response.read()
