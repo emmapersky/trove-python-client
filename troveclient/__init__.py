@@ -49,13 +49,14 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'https://beta.yourtrove.com"
+API_BETA_BASE = 'https://api.yourtrove.com'
+BETA_BASE = 'https://beta.yourtrove.com'
 
 VERSION_BETA_BASE = '/v1'
 
-REQUEST_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' 
-ACCESS_TOKEN_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/' 
-AUTHORIZATION_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/authorize/'
+REQUEST_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' 
+ACCESS_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/' 
+AUTHORIZATION_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/authorize/'
 CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
 PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
 USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
