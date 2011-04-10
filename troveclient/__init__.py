@@ -315,7 +315,7 @@ class TroveAPI():
                 parameters['redirect_url'] = redirect_url
 
             response = self.__make_oauth_request(service_url, parameters, token=self._access_token, signed=True)
-            return API_BETA_BASE + response.read()
+            return BETA_BASE + response.read()
         else: 
             raise LocalError("Could not find service name " + service)
         
@@ -328,4 +328,4 @@ class TroveAPI():
         
         req = urllib2.Request(CREATE_AND_AUTH_URL + service, encoded_parameters)
         self.response = urllib2.urlopen(req)
-        return self.response.read()
+        return BETA_BASE  + self.response.read()
