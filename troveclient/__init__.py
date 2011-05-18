@@ -49,19 +49,19 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'https://api.yourtrove.com'
-BETA_BASE = 'https://beta.yourtrove.com'
+API_WEB_BASE = 'https://api.yourtrove.com'
+WEB_BASE = 'https://www.yourtrove.com'
 
-VERSION_BETA_BASE = '/v1'
+VERSION_WEB_BASE = '/v1'
 
-REQUEST_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' 
-ACCESS_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/' 
-AUTHORIZATION_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/authorize/'
-CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
-PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
-USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
-ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/get_add_urls_for_services/'
-CREATE_AND_AUTH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/add/newtrove/service/'
+REQUEST_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/request_token/' 
+ACCESS_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/access_token/' 
+AUTHORIZATION_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/authorize/'
+CONTENT_ROOT_URL = API_WEB_BASE + VERSION_WEB_BASE +'/oauth/'
+PUSH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/push/'
+USER_INFO_URL = API_WEB_BASE + VERSION_WEB_BASE +'/oauth/user/'
+ADD_URLS_FOR_SERVICES_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/get_add_urls_for_services/'
+CREATE_AND_AUTH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/add/newtrove/service/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -309,13 +309,13 @@ class TroveAPI():
         services = simplejson.loads(response.read())
             
         if service in services.keys():
-            service_url = API_BETA_BASE + services[service]
+            service_url = API_WEB_BASE + services[service]
             parameters = self.__get_default_oauth_params() 
             if redirect_url is not None:
                 parameters['redirect_url'] = redirect_url
 
             response = self.__make_oauth_request(service_url, parameters, token=self._access_token, signed=True)
-            return BETA_BASE + response.read()
+            return WEB_BASE + response.read()
         else: 
             raise LocalError("Could not find service name " + service)
         
@@ -328,4 +328,4 @@ class TroveAPI():
         
         req = urllib2.Request(CREATE_AND_AUTH_URL + service, encoded_parameters)
         self.response = urllib2.urlopen(req)
-        return BETA_BASE  + self.response.read()
+        return WEB_BASE  + self.response.read()
