@@ -49,10 +49,10 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_WEB_BASE = 'https://api.yourtrove.com'
-WEB_BASE = 'https://www.yourtrove.com'
+from troveclient.domains import API_WEB_BASE, WEB_BASE
 
-VERSION_WEB_BASE = '/v1'
+
+VERSION_WEB_BASE = '/v2'
 
 REQUEST_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/request_token/' 
 ACCESS_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/access_token/' 
@@ -62,6 +62,7 @@ PUSH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/push/'
 USER_INFO_URL = API_WEB_BASE + VERSION_WEB_BASE +'/oauth/user/'
 ADD_URLS_FOR_SERVICES_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/get_add_urls_for_services/'
 CREATE_AND_AUTH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/add/newtrove/service/'
+POST_USER_STATUS = API_WEB_BASE + VERSION_WEB_BASE + '/statuses/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -234,6 +235,18 @@ class TroveAPI():
             raise RequiresAccessTokenError()
         response = self.__make_oauth_request(USER_INFO_URL, token=self._access_token, signed=True)
         return simplejson.loads(response.read())
+
+    def post_user_status(self,status,services=None):
+
+        if self._access_token is None:
+            raise RequiresAccessTokenError()
+        parameters = self.__get_default_oauth_params()
+        parameters['status'] = status
+        if services is not None:
+            parameters['services'] = services
+        response = self.__make_oauth_request(POST_USER_STATUS, parameters, token=self._access_token, signed=True)
+        return simplejson.loads(response.read())
+
 
     def get_photos(self,query=None): 
         """     Retrieves a user's photos based on the Query passed in. *This call requires an access token.*
