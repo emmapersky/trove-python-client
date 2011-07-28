@@ -51,8 +51,6 @@ from troveclient.JSONFactories import make_nice
 
 API_WEB_BASE = 'https://api.yourtrove.com'
 WEB_BASE = 'https://www.yourtrove.com'
-#API_WEB_BASE = 'http://whitestar.jemery.trove.com/'
-#WEB_BASE = 'http://whitestar.jemery.trove.com/'
 
 VERSION_WEB_BASE = '/v1'
 
