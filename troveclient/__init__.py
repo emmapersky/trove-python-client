@@ -49,19 +49,19 @@ from dateutil.parser import *
 from troveclient import JSONFactories
 from troveclient.JSONFactories import make_nice
 
-API_BETA_BASE = 'https://api.yourtrove.com'
-BETA_BASE = 'https://beta.yourtrove.com'
+API_WEB_BASE = 'https://api.yourtrove.com'
+WEB_BASE = 'https://www.yourtrove.com'
 
-VERSION_BETA_BASE = '/v1'
+VERSION_WEB_BASE = '/v1'
 
-REQUEST_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/request_token/' 
-ACCESS_TOKEN_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/access_token/' 
-AUTHORIZATION_URL = BETA_BASE + VERSION_BETA_BASE + '/oauth/authorize/'
-CONTENT_ROOT_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/'
-PUSH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/push/'
-USER_INFO_URL = API_BETA_BASE + VERSION_BETA_BASE +'/oauth/user/'
-ADD_URLS_FOR_SERVICES_URL = API_BETA_BASE + VERSION_BETA_BASE + '/oauth/get_add_urls_for_services/'
-CREATE_AND_AUTH_URL = API_BETA_BASE + VERSION_BETA_BASE + '/add/newtrove/service/'
+REQUEST_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/request_token/' 
+ACCESS_TOKEN_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/access_token/' 
+AUTHORIZATION_URL = WEB_BASE + VERSION_WEB_BASE + '/oauth/authorize/'
+CONTENT_ROOT_URL = API_WEB_BASE + VERSION_WEB_BASE +'/oauth/'
+PUSH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/push/'
+USER_INFO_URL = API_WEB_BASE + VERSION_WEB_BASE +'/oauth/user/'
+ADD_URLS_FOR_SERVICES_URL = API_WEB_BASE + VERSION_WEB_BASE + '/oauth/get_add_urls_for_services/'
+CREATE_AND_AUTH_URL = API_WEB_BASE + VERSION_WEB_BASE + '/add/newtrove/service/'
 
 def _generate_nonce(length=8):
     """Generate pseudorandom number."""
@@ -111,16 +111,22 @@ class TroveAPI():
     :param consumer_secret:  A string of your application's Trove secret
     :param scope: A list of strings for scopes of the client.  Currently only 'photos' is valid.
     :param access_token: An instance of :class:`~oauth.oauth.OAuthToken' that is used to make requests on behalf of a user
+    :param authorization_callback: URL that the user should be returned to when they are asked to authorize (can be overridden be specifying in get_authorization_url)
     """
 
     DEBUG = False
 
-    def __init__(self, consumer_key, consumer_secret, scope=[], access_token=None):
+    def __init__(self, consumer_key, consumer_secret,scope=None, access_token=None, authorization_callback=None):
         self._Consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
         self._signature_method = oauth.OAuthSignatureMethod_HMAC_SHA1
         self._access_token = access_token
-        self._scope = scope
+        if scope is not None:
+            self._scope = scope
+        else:
+            # set the default to photos, let's be real
+            self._scope = ['photos']
         self._urllib = urllib2
+        self.authorization_callback = authorization_callback
         self._initialize_user_agent()
         self._default_oauth_params = {
                   'oauth_consumer_key': self._Consumer.key,
@@ -129,6 +135,10 @@ class TroveAPI():
                   'oauth_version': _oauth_version(),
                   'scope': ','.join(self._scope)
         } 
+        if access_token is None:
+            self.get_request_token()
+            self.get_authorization_url(self.request_token, self.authorization_callback)
+        
         
     def _initialize_user_agent(self):
         user_agent = 'Python-urllib/%s (python-trove/%s)' % \
@@ -196,6 +206,7 @@ class TroveAPI():
         response = self.__make_oauth_request(REQUEST_TOKEN_URL, oauth_signature=self._Consumer.secret+"&", method="GET")
         self.response = response
         request_token = oauth.OAuthToken.from_string(response.read())
+        self.request_token = request_token
         return request_token
 
     def get_authorization_url(self, request_token, callback=None):
@@ -208,15 +219,20 @@ class TroveAPI():
         
         if callback:
             parameters['oauth_callback'] = callback
+        elif self.authorization_callback:
+            parameters['oauth_callback'] = self.authorization_callback
 
-        response = self.__make_oauth_request(AUTHORIZATION_URL, parameters, oauth_signature=None, method="GET")            
-        return response.geturl()
+        response = self.__make_oauth_request(AUTHORIZATION_URL, parameters, oauth_signature=None, method="GET")
+        self.authorization_url = response.geturl()            
+        return self.authorization_url
                 
-    def get_access_token(self, request_token):
+    def get_access_token(self, request_token=None):
         """      Returns an instance of :class:`~oauth.oauth.OAuthToken` that is used to make requests on behalf of a user
 
                 :param request_token: An instance of :class:`~oauth.oauth.OAuthToken` that is used to authorize an access token by the user
         """
+        if request_token is None and self.request_token is not None:
+            request_token = self.request_token
         response = self.__make_oauth_request(ACCESS_TOKEN_URL, oauth_signature='%s&%s' % (self._Consumer.secret, request_token.secret), token=request_token, method='GET')
         self.response = response
         access_token = oauth.OAuthToken.from_string(response.read())
@@ -309,13 +325,13 @@ class TroveAPI():
         services = simplejson.loads(response.read())
             
         if service in services.keys():
-            service_url = API_BETA_BASE + services[service]
+            service_url = API_WEB_BASE + services[service]
             parameters = self.__get_default_oauth_params() 
             if redirect_url is not None:
                 parameters['redirect_url'] = redirect_url
 
             response = self.__make_oauth_request(service_url, parameters, token=self._access_token, signed=True)
-            return BETA_BASE + response.read()
+            return WEB_BASE + response.read()
         else: 
             raise LocalError("Could not find service name " + service)
         
@@ -328,4 +344,4 @@ class TroveAPI():
         
         req = urllib2.Request(CREATE_AND_AUTH_URL + service, encoded_parameters)
         self.response = urllib2.urlopen(req)
-        return BETA_BASE  + self.response.read()
+        return WEB_BASE  + self.response.read()
